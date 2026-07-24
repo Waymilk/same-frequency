@@ -1,12 +1,23 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  configureWechatShare,
+  isWechatBrowser,
+  type WechatShareStatus,
+} from "../lib/wechat-client";
 
 type ChannelKey = "chinese" | "western" | "kpop" | "acg";
 type Screen = "home" | "channels" | "join" | "quiz" | "mbti" | "profile" | "invite" | "duoResult";
 type DimensionKey = "emotion" | "energy" | "mainstream" | "discovery" | "nostalgia" | "live";
 type ParticipantRole = "solo" | "host" | "guest";
 type RoomStatus = "idle" | "loading" | "waiting" | "completed" | "expired" | "error";
+type WechatAssist = {
+  mode: "save" | "share";
+  posterUrl: string;
+  title: string;
+  status?: WechatShareStatus | "loading";
+};
 
 type Channel = {
   key: ChannelKey;
@@ -416,10 +427,12 @@ export default function Home() {
   const [invitePosterOpen, setInvitePosterOpen] = useState(false);
   const [invitePosterBusy, setInvitePosterBusy] = useState(false);
   const [shareFeedback, setShareFeedback] = useState("");
+  const [wechatAssist, setWechatAssist] = useState<WechatAssist | null>(null);
   const [answerBusy, setAnswerBusy] = useState(false);
   const [quizNotice, setQuizNotice] = useState("");
   const answerLock = useRef(false);
   const homeChannelsRef = useRef<HTMLDivElement>(null);
+  const wechatShareRequest = useRef(0);
 
   const channel = channels.find((item) => item.key === channelKey)!;
   const questions = questionSets[channelKey];
@@ -830,8 +843,18 @@ export default function Home() {
     }
   };
 
+  const closeWechatAssist = () => {
+    wechatShareRequest.current += 1;
+    setWechatAssist(null);
+  };
+
   const downloadInvitePoster = () => {
     if (!invitePosterUrl) return;
+    if (isWechatBrowser()) {
+      wechatShareRequest.current += 1;
+      setWechatAssist({ mode: "save", posterUrl: invitePosterUrl, title: "保存房间邀请海报" });
+      return;
+    }
     const link = document.createElement("a");
     link.href = invitePosterUrl;
     link.download = `同频播放-邀请房间-${roomCode}.png`;
@@ -841,6 +864,21 @@ export default function Home() {
 
   const shareInvitePoster = async () => {
     if (!invitePosterUrl) return;
+    if (isWechatBrowser()) {
+      const requestId = ++wechatShareRequest.current;
+      const title = `同频播放｜加入我的 ${channel.name} 双人测试`;
+      setWechatAssist({ mode: "share", posterUrl: invitePosterUrl, title, status: "loading" });
+      const status = await configureWechatShare({
+        title,
+        desc: "16 道音乐选择，看看我们能不能共用一副耳机。",
+        link: inviteUrl,
+        imgUrl: `${window.location.origin}/share-cover.png`,
+      });
+      if (requestId !== wechatShareRequest.current) return;
+      setWechatAssist({ mode: "share", posterUrl: invitePosterUrl, title, status });
+      setShareFeedback(status === "ready" ? "微信好友分享卡片已准备好" : "请使用微信右上角菜单发送给朋友");
+      return;
+    }
     try {
       const blob = await (await fetch(invitePosterUrl)).blob();
       const file = new File([blob], `同频播放-邀请房间-${roomCode}.png`, { type: "image/png" });
@@ -874,6 +912,7 @@ export default function Home() {
     setPosterOpen(false);
     setInvitePosterUrl("");
     setInvitePosterOpen(false);
+    setWechatAssist(null);
     setShareFeedback("");
     setAnswerBusy(false);
     setQuizNotice("");
@@ -1073,6 +1112,11 @@ export default function Home() {
 
   const downloadPoster = () => {
     if (!posterUrl) return;
+    if (isWechatBrowser()) {
+      wechatShareRequest.current += 1;
+      setWechatAssist({ mode: "save", posterUrl, title: "保存双人结果海报" });
+      return;
+    }
     const link = document.createElement("a");
     link.href = posterUrl;
     link.download = `同频播放-${roomCode}-${duoReport?.score ?? 0}.png`;
@@ -1082,6 +1126,21 @@ export default function Home() {
 
   const sharePoster = async () => {
     if (!posterUrl || !duoReport) return;
+    if (isWechatBrowser()) {
+      const requestId = ++wechatShareRequest.current;
+      const title = `同频播放｜${duoReport.score}% ${duoReport.tier.title}`;
+      setWechatAssist({ mode: "share", posterUrl, title, status: "loading" });
+      const status = await configureWechatShare({
+        title,
+        desc: resultShareText,
+        link: inviteUrl,
+        imgUrl: `${window.location.origin}/share-cover.png`,
+      });
+      if (requestId !== wechatShareRequest.current) return;
+      setWechatAssist({ mode: "share", posterUrl, title, status });
+      setShareFeedback(status === "ready" ? "微信好友分享卡片已准备好" : "请使用微信右上角菜单发送给朋友");
+      return;
+    }
     try {
       const blob = await (await fetch(posterUrl)).blob();
       const file = new File([blob], `同频播放-${roomCode}.png`, { type: "image/png" });
@@ -1863,6 +1922,44 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {wechatAssist && (
+        <div className={`wechat-assist wechat-assist--${wechatAssist.mode}`} role="dialog" aria-modal="true" aria-labelledby="wechat-assist-title">
+          <header className="wechat-assist__head">
+            <div>
+              <p>{wechatAssist.mode === "save" ? "LONG PRESS TO SAVE" : "WECHAT SHARE"}</p>
+              <h2 id="wechat-assist-title">{wechatAssist.title}</h2>
+            </div>
+            <button onClick={closeWechatAssist} aria-label="关闭微信分享引导">×</button>
+          </header>
+          {wechatAssist.mode === "share" && <div className="wechat-assist__arrow" aria-hidden="true">↗</div>}
+          <div className="wechat-assist__poster">
+            {/* A native image element is required for WeChat's long-press save menu. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={wechatAssist.posterUrl} alt={wechatAssist.title} />
+          </div>
+          <div className="wechat-assist__message">
+            {wechatAssist.mode === "save" ? (
+              <>
+                <strong>长按海报，选择“保存图片”</strong>
+                <span>保存后可在微信聊天中作为图片发送</span>
+              </>
+            ) : (
+              <>
+                <strong>点击右上角，选择“发送给朋友”</strong>
+                <span>
+                  {wechatAssist.status === "loading"
+                    ? "正在准备好友分享卡片…"
+                    : wechatAssist.status === "ready"
+                      ? "分享卡片已准备好"
+                      : "当前使用微信页面分享；发送海报图片请先长按保存"}
+                </span>
+              </>
+            )}
+          </div>
+          <button className="wechat-assist__done" onClick={closeWechatAssist}>完成</button>
         </div>
       )}
 

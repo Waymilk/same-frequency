@@ -32,7 +32,11 @@ npm run dev
 
 ```env
 DATABASE_URL=postgresql://user:password@host/database?sslmode=require
+WECHAT_APP_ID=wx_your_official_account_app_id
+WECHAT_APP_SECRET=your_official_account_app_secret
 ```
+
+微信环境变量为可选配置。未配置时，微信内仍可通过长按海报保存，并使用右上角菜单分享当前页面；配置后会使用微信 JS-SDK 设置好友分享卡片。公众号后台的“JS 接口安全域名”必须包含当前生产域名，且页面必须通过 HTTPS 访问。
 
 首次调用房间 API 时会自动创建数据库表。也可以在 Neon SQL Editor 中执行 [`db/schema.sql`](db/schema.sql)。
 
@@ -40,7 +44,7 @@ DATABASE_URL=postgresql://user:password@host/database?sslmode=require
 
 1. 在 Neon 创建数据库，区域建议选择新加坡。
 2. 在 Vercel 导入此 GitHub 仓库。
-3. 在 Vercel 项目环境变量中添加 `DATABASE_URL`。
+3. 在 Vercel 项目环境变量中添加 `DATABASE_URL`；如需微信好友分享卡片，同时添加 `WECHAT_APP_ID` 和 `WECHAT_APP_SECRET`。
 4. 重新部署项目。
 
 ## 数据规则
