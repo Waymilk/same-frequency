@@ -1112,16 +1112,6 @@ export default function Home() {
     <main className={`app theme-${channelKey}`} data-screen={screen}>
       <div className="noise" aria-hidden="true" />
       <div className="scanline" aria-hidden="true" />
-      <div className="rotate-gate" role="status" aria-live="polite">
-        <div className="rotate-gate__icon" aria-hidden="true">
-          <span className="rotate-gate__phone"><i /></span>
-          <span className="rotate-gate__arrow">↻</span>
-        </div>
-        <p className="eyebrow">LANDSCAPE SIGNAL REQUIRED</p>
-        <h2>请横置手机<br />进入双声道</h2>
-        <p>旋转设备后，界面会自动切换为横屏模式。</p>
-        <div className="rotate-gate__meter"><i /><i /><i /><i /><i /><i /><i /><i /></div>
-      </div>
       <header className="topbar">
         <button className="brand" onClick={goHome} aria-label="返回同频播放首页">
           <span className="brand-mark"><i /><i /><i /><i /><i /></span>
