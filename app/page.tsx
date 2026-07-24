@@ -696,114 +696,122 @@ export default function Home() {
 
     const palette = posterPalettes[channelKey];
     const background = context.createLinearGradient(0, 0, 1080, 1440);
-    background.addColorStop(0, "#040812");
-    background.addColorStop(.58, "#07111f");
-    background.addColorStop(1, "#02050a");
+    background.addColorStop(0, "#090d17");
+    background.addColorStop(.54, "#070b13");
+    background.addColorStop(1, "#04070d");
     context.fillStyle = background;
     context.fillRect(0, 0, 1080, 1440);
 
-    context.strokeStyle = "rgba(105,137,179,.12)";
+    context.strokeStyle = "rgba(105,137,179,.1)";
     context.lineWidth = 1;
-    for (let x = 40; x < 1080; x += 40) {
+    for (let x = 0; x <= 1080; x += 60) {
       context.beginPath();
       context.moveTo(x, 0);
       context.lineTo(x, 1440);
       context.stroke();
     }
-    for (let y = 40; y < 1440; y += 40) {
+    for (let y = 0; y <= 1440; y += 60) {
       context.beginPath();
       context.moveTo(0, y);
       context.lineTo(1080, y);
       context.stroke();
     }
 
-    const halo = context.createRadialGradient(540, 690, 60, 540, 690, 610);
+    const halo = context.createRadialGradient(540, 790, 40, 540, 790, 620);
     halo.addColorStop(0, palette.glow);
     halo.addColorStop(1, "rgba(0,0,0,0)");
     context.fillStyle = halo;
-    context.fillRect(0, 100, 1080, 1180);
+    context.fillRect(0, 160, 1080, 1140);
 
-    context.fillStyle = palette.accent;
-    context.fillRect(58, 58, 8, 54);
-    context.fillStyle = palette.accent2;
-    context.fillRect(72, 58, 8, 34);
-    context.fillRect(86, 58, 8, 54);
-    context.fillStyle = "#f4f7ff";
-    context.font = "800 27px ui-monospace, SFMono-Regular, Menlo, monospace";
-    context.fillText("SAME FREQUENCY", 116, 91);
-    context.textAlign = "right";
-    context.fillStyle = palette.accent;
-    context.font = "700 15px ui-monospace, SFMono-Regular, Menlo, monospace";
-    context.fillText("INCOMING DUAL SIGNAL", 1022, 89);
-    context.textAlign = "left";
-
-    context.strokeStyle = "rgba(145,174,214,.28)";
-    context.beginPath();
-    context.moveTo(58, 137);
-    context.lineTo(1022, 137);
-    context.stroke();
-
-    context.fillStyle = palette.accent;
-    context.font = "700 18px ui-monospace, SFMono-Regular, Menlo, monospace";
-    context.fillText("LISTENER 01 IS WAITING", 60, 202);
-    context.fillStyle = "#f4f7ff";
-    context.font = "900 84px PingFang SC, Microsoft YaHei, sans-serif";
-    context.fillText("有人在等你", 58, 310);
-    context.fillStyle = palette.accent2;
-    context.fillText("进入同一声道", 58, 405);
-
-    posterPath(context, 58, 444, 964, 104, 12);
-    context.fillStyle = "rgba(7,15,27,.9)";
-    context.fill();
-    context.strokeStyle = "rgba(150,178,216,.25)";
-    context.stroke();
-    context.fillStyle = "#7d8ba1";
-    context.font = "650 15px ui-monospace, SFMono-Regular, Menlo, monospace";
-    context.fillText("LOCKED CHANNEL", 84, 482);
-    context.fillStyle = palette.accent;
-    context.font = "800 28px PingFang SC, Microsoft YaHei, sans-serif";
-    context.fillText(channel.name, 84, 520);
-    context.textAlign = "right";
-    context.fillStyle = "#7d8ba1";
-    context.font = "650 15px ui-monospace, SFMono-Regular, Menlo, monospace";
-    context.fillText("ROOM CODE", 996, 482);
-    context.fillStyle = palette.accent2;
-    context.font = "850 31px ui-monospace, SFMono-Regular, Menlo, monospace";
-    context.fillText(roomCode, 996, 521);
-    context.textAlign = "left";
-
-    posterPath(context, 244, 588, 592, 592, 18);
-    context.fillStyle = "#f4f7ff";
-    context.fill();
-    context.save();
-    context.shadowColor = palette.accent;
-    context.shadowBlur = 42;
     context.strokeStyle = palette.accent;
-    context.lineWidth = 5;
+    context.lineWidth = 3;
+    context.beginPath();
+    context.moveTo(42, 176);
+    context.lineTo(42, 42);
+    context.lineTo(182, 42);
+    context.moveTo(898, 42);
+    context.lineTo(1038, 42);
+    context.lineTo(1038, 176);
+    context.moveTo(42, 1264);
+    context.lineTo(42, 1398);
+    context.lineTo(182, 1398);
+    context.moveTo(898, 1398);
+    context.lineTo(1038, 1398);
+    context.lineTo(1038, 1264);
     context.stroke();
-    context.restore();
 
-    const qrImage = await loadQrImage(inviteUrl, 500, "H");
-    context.drawImage(qrImage, 290, 634, 500, 500);
-
-    context.textAlign = "center";
-    context.fillStyle = "#f4f7ff";
-    context.font = "800 35px PingFang SC, Microsoft YaHei, sans-serif";
-    context.fillText("微信长按识别二维码", 540, 1248);
-    context.fillStyle = palette.accent2;
-    context.font = "700 23px PingFang SC, Microsoft YaHei, sans-serif";
-    context.fillText("加入 16 道音乐合拍测试", 540, 1291);
-    context.fillStyle = "#748198";
-    context.font = "600 14px ui-monospace, SFMono-Regular, Menlo, monospace";
-    context.fillText(`${channel.code} CHANNEL · ROOM ${roomCode} · VALID FOR 24H`, 540, 1338);
-    context.textAlign = "left";
+    context.strokeStyle = "rgba(145,174,214,.26)";
+    context.lineWidth = 2;
+    context.strokeRect(54, 54, 972, 1332);
 
     context.fillStyle = palette.accent;
-    context.fillRect(58, 1380, 166, 4);
+    context.fillRect(74, 82, 8, 38);
+    context.fillStyle = palette.accent2;
+    context.fillRect(90, 70, 8, 62);
+    context.fillRect(122, 70, 8, 62);
+    context.fillStyle = palette.accent;
+    context.fillRect(106, 82, 8, 38);
+    context.fillRect(138, 88, 8, 26);
+    context.fillStyle = "#f4f7ff";
+    context.font = "800 25px ui-monospace, SFMono-Regular, Menlo, monospace";
+    context.fillText("SAME FREQUENCY", 172, 108);
     context.textAlign = "right";
     context.fillStyle = "#68758b";
-    context.font = "600 13px ui-monospace, SFMono-Regular, Menlo, monospace";
-    context.fillText("TWO LISTENERS · ONE PRIVATE CHANNEL", 1022, 1385);
+    context.font = "700 13px ui-monospace, SFMono-Regular, Menlo, monospace";
+    context.fillText("SIGNAL ONLINE", 990, 106);
+    context.textAlign = "left";
+
+    context.fillStyle = "#f4f7ff";
+    context.font = "900 82px PingFang SC, Microsoft YaHei, sans-serif";
+    context.fillText("有人在等你", 74, 250);
+    context.fillStyle = palette.accent2;
+    context.fillText("进入同一声道", 74, 342);
+
+    context.fillStyle = palette.accent;
+    context.fillRect(74, 390, 46, 3);
+    context.font = "750 23px PingFang SC, Microsoft YaHei, sans-serif";
+    context.fillText(`${channel.short}频道  ·  ${channel.code}`, 142, 400);
+
+    const qrSize = 544;
+    const qrX = (1080 - qrSize) / 2;
+    const qrY = 476;
+    context.fillStyle = "#f4f7ff";
+    context.fillRect(qrX - 24, qrY - 24, qrSize + 48, qrSize + 48);
+    context.save();
+    context.shadowColor = palette.accent;
+    context.shadowBlur = 36;
+    context.strokeStyle = palette.accent;
+    context.lineWidth = 3;
+    context.strokeRect(qrX - 24, qrY - 24, qrSize + 48, qrSize + 48);
+    context.restore();
+
+    const qrImage = await loadQrImage(inviteUrl, qrSize, "H");
+    context.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+
+    context.fillStyle = "#727e91";
+    context.font = "700 14px ui-monospace, SFMono-Regular, Menlo, monospace";
+    context.fillText("ROOM CODE", 74, 1164);
+    context.fillStyle = "#f7f8fb";
+    context.font = "850 54px ui-monospace, SFMono-Regular, Menlo, monospace";
+    context.fillText(roomCode, 74, 1226);
+    context.textAlign = "right";
+    context.fillStyle = "#727e91";
+    context.font = "700 14px ui-monospace, SFMono-Regular, Menlo, monospace";
+    context.fillText("VALID FOR", 990, 1164);
+    context.fillStyle = palette.accent2;
+    context.font = "800 30px PingFang SC, Microsoft YaHei, sans-serif";
+    context.fillText("24 小时", 990, 1218);
+
+    context.strokeStyle = "rgba(145,174,214,.2)";
+    context.beginPath();
+    context.moveTo(74, 1292);
+    context.lineTo(990, 1292);
+    context.stroke();
+    context.textAlign = "center";
+    context.fillStyle = "#8d99aa";
+    context.font = "650 18px PingFang SC, Microsoft YaHei, sans-serif";
+    context.fillText(`${channel.short}频道 · ${questions.length} 道题 · 24 小时有效`, 540, 1344);
+    context.textAlign = "left";
 
     return canvas.toDataURL("image/png");
   };
@@ -1782,41 +1790,38 @@ export default function Home() {
       )}
 
       {invitePosterOpen && participantRole === "host" && roomCode && (
-        <div className="poster-modal" role="dialog" aria-modal="true" aria-labelledby="invite-poster-title" onClick={() => setInvitePosterOpen(false)}>
-          <div className="poster-dialog" onClick={(event) => event.stopPropagation()}>
-            <div className="poster-dialog__head">
-              <div>
-                <p className="eyebrow">ROOM INVITE SIGNAL GENERATED</p>
-                <h2 id="invite-poster-title">双人房邀请海报</h2>
+        <div className="invite-share-modal" role="dialog" aria-modal="true" aria-labelledby="invite-poster-title" onClick={() => setInvitePosterOpen(false)}>
+          <div className="invite-share-sheet" onClick={(event) => event.stopPropagation()}>
+            <header className="invite-share-head">
+              <h2 id="invite-poster-title"><i aria-hidden="true" />邀请好友加入同频</h2>
+              <button className="invite-share-close" onClick={() => setInvitePosterOpen(false)} aria-label="关闭邀请海报">×</button>
+            </header>
+            <div className="invite-share-body">
+              <div className="invite-share-preview">
+                {invitePosterBusy && (
+                  <div className="poster-loading">
+                    <span />
+                    <strong>正在编码房间二维码</strong>
+                    <small>GENERATING 1080 × 1440 INVITE POSTER</small>
+                  </div>
+                )}
+                {!invitePosterBusy && invitePosterUrl && (
+                  <img src={invitePosterUrl} alt={`${channel.name}房间${roomCode}邀请二维码海报`} />
+                )}
+                {!invitePosterBusy && !invitePosterUrl && <p className="room-error">{shareFeedback || "邀请海报暂时无法生成"}</p>}
               </div>
-              <button className="poster-close" onClick={() => setInvitePosterOpen(false)} aria-label="关闭邀请海报">×</button>
-            </div>
-            <div className="poster-preview">
-              {invitePosterBusy && (
-                <div className="poster-loading">
-                  <span />
-                  <strong>正在编码房间二维码</strong>
-                  <small>GENERATING 1080 × 1440 INVITE POSTER</small>
-                </div>
-              )}
-              {!invitePosterBusy && invitePosterUrl && (
-                <img src={invitePosterUrl} alt={`${channel.name}房间${roomCode}邀请二维码海报`} />
-              )}
-              {!invitePosterBusy && !invitePosterUrl && <p className="room-error">{shareFeedback || "邀请海报暂时无法生成"}</p>}
-            </div>
-            <div className="poster-dialog__foot">
-              <p>
-                将海报发到微信，对方长按识别二维码即可进入房间。二维码将在 24 小时内保持有效。
-                {shareFeedback && <strong>{shareFeedback}</strong>}
-              </p>
-              <div className="actions">
-                <button className="button button--primary" disabled={!invitePosterUrl || invitePosterBusy} onClick={shareInvitePoster}>
+              <p className="invite-share-summary"><i aria-hidden="true" />{channel.short}频道 · {questions.length} 道题 · 24 小时有效</p>
+              <div className="invite-share-actions">
+                <button className="invite-share-button invite-share-button--primary" disabled={!invitePosterUrl || invitePosterBusy} onClick={shareInvitePoster}>
                   分享邀请海报 <span>↗</span>
                 </button>
-                <button className="button button--ghost" disabled={!invitePosterUrl || invitePosterBusy} onClick={downloadInvitePoster}>
-                  保存图片 <span>↓</span>
+                <button className="invite-share-button invite-share-button--secondary" disabled={!invitePosterUrl || invitePosterBusy} onClick={downloadInvitePoster}>
+                  保存图片
                 </button>
               </div>
+              <p className="invite-share-hint" role={shareFeedback ? "status" : undefined}>
+                {shareFeedback || "微信内可直接分享，或保存图片后发送"}
+              </p>
             </div>
           </div>
         </div>
