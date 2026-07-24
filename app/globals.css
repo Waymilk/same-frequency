@@ -2616,7 +2616,7 @@ button { color: inherit; font: inherit; }
     width: calc(100% - 24px);
   }
 
-  /* The landing screen is the only strict one-viewport screen on phones. */
+  /* The later home override gives the long landing page its own touch scroller. */
   .home {
     height: calc(100vh - 52px);
     height: calc(100dvh - 52px);
@@ -2854,11 +2854,14 @@ button { color: inherit; font: inherit; }
 
 @media (max-width: 700px) and (orientation: portrait) {
   .app[data-screen="home"] {
-    height: auto;
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
     overflow-x: hidden;
-    overflow-y: visible;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
   }
 
   .app[data-screen="home"]::before,
