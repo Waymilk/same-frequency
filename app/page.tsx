@@ -419,6 +419,7 @@ export default function Home() {
   const [answerBusy, setAnswerBusy] = useState(false);
   const [quizNotice, setQuizNotice] = useState("");
   const answerLock = useRef(false);
+  const homeChannelsRef = useRef<HTMLDivElement>(null);
 
   const channel = channels.find((item) => item.key === channelKey)!;
   const questions = questionSets[channelKey];
@@ -572,6 +573,10 @@ export default function Home() {
     setQuizNotice("");
     answerLock.current = false;
     setScreen("quiz");
+  };
+
+  const scrollToHomeChannels = () => {
+    homeChannelsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const answer = (optionIndex: number) => {
@@ -1131,11 +1136,19 @@ export default function Home() {
             <p className="home__en">SAME FREQUENCY</p>
             <div className="micro-wave"><Waveform compact /></div>
             <p className="lede">两个人，十六次选择，<br className="mobile-hide" />看看你们能不能共用一副耳机。</p>
-            <div className="actions">
+            <div className="actions home-actions--desktop">
               <button className="button button--primary" onClick={() => setScreen("channels")}>
                 发起合拍测试 <span>↗</span>
               </button>
               <button className="button button--ghost" onClick={() => setScreen("channels")}>
+                查看四个频道 <span>›</span>
+              </button>
+            </div>
+            <div className="actions home-actions--mobile">
+              <button className="button button--primary" onClick={startQuiz}>
+                发起合拍测试 <span>↗</span>
+              </button>
+              <button className="button button--ghost" onClick={scrollToHomeChannels}>
                 查看四个频道 <span>›</span>
               </button>
             </div>
@@ -1144,7 +1157,13 @@ export default function Home() {
               <span><b>04</b> CHANNELS</span>
               <span><b>02</b> LISTENERS</span>
             </div>
+            <div className="home__telemetry" aria-hidden="true">
+              <span>SYNC_FEED.001<i /><i /><i /><i /></span>
+              <span>SIGNAL LINK<b>≫</b><i /><i /><i /></span>
+            </div>
           </div>
+
+          <div className="home__signal-bridge" aria-hidden="true"><i /><i /><i /></div>
 
           <div className="signal-console">
             <div className="console-head">
@@ -1168,14 +1187,19 @@ export default function Home() {
               <span className="channel-letter">R</span>
               <Waveform />
             </div>
-            <div className="console-tabs">
+            <div className="console-tabs" ref={homeChannelsRef}>
               {channels.map((item) => (
                 <button
                   key={item.key}
                   className={item.key === channelKey ? "is-active" : ""}
                   onClick={() => chooseChannel(item.key)}
+                  aria-pressed={item.key === channelKey}
                 >
-                  <i /> {item.short}
+                  <span className="console-tab__desktop"><i /> {item.short}</span>
+                  <span className="console-tab__mobile">
+                    <Waveform compact />
+                    <strong>{item.short}</strong>
+                  </span>
                 </button>
               ))}
             </div>
