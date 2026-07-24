@@ -1,3 +1,8 @@
+/* SAME FREQUENCY MOBILE PORTRAIT V3
+ * Home: one viewport
+ * Option and result pages: natural vertical scrolling
+ * WeChat: root rotation and fixed noise overlays disabled
+ */
 @import "tailwindcss";
 
 :root {
@@ -2805,8 +2810,7 @@ button {
   }
 }
 
-@media (orientation: landscape) and (max-height: 520px),
-  (orientation: portrait) and (max-width: 900px) {
+@media (orientation: landscape) and (max-height: 520px) {
   .shell,
   .topbar {
     width: min(100% - 28px, 1440px);
@@ -3876,6 +3880,314 @@ button {
     padding: 0 8px;
     gap: 6px;
     font-size: 7px;
+  }
+}
+
+@media (max-width: 900px) and (orientation: portrait) {
+  html,
+  body {
+    width: 100%;
+    min-height: 100%;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .app {
+    --screen-h: 100vh;
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: visible;
+    transform: none;
+  }
+
+  .noise,
+  .scanline,
+  .rotate-gate {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) and (orientation: portrait) {
+  html,
+  body {
+    width: 100%;
+    min-height: 100%;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: none;
+    background: var(--bg);
+  }
+
+  .app {
+    --screen-h: 100vh;
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: visible;
+    transform: none;
+  }
+
+  .app[data-screen="home"] {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .app[data-screen="duoResult"] {
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+
+  /* Fixed translucent layers are unstable in some WeChat WebViews. */
+  .noise,
+  .scanline,
+  .rotate-gate {
+    display: none;
+  }
+
+  .topbar {
+    width: calc(100% - 24px);
+    height: 52px;
+  }
+
+  .brand {
+    gap: 8px;
+    font-size: 9px;
+  }
+
+  .brand-mark {
+    height: 20px;
+  }
+
+  .topbar__right {
+    gap: 8px;
+  }
+
+  .system-status {
+    font-size: 7px;
+  }
+
+  .footer {
+    display: none;
+  }
+
+  .shell {
+    width: calc(100% - 24px);
+  }
+
+  /* The landing screen is the only strict one-viewport screen on phones. */
+  .home {
+    height: calc(100vh - 52px);
+    height: calc(100dvh - 52px);
+    min-height: 0;
+    padding: 8px 0 10px;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  .home__copy {
+    text-align: center;
+  }
+
+  .home .eyebrow {
+    margin-bottom: 5px;
+    font-size: 7px;
+  }
+
+  .home h1 {
+    margin: 0;
+    font-size: clamp(44px, 14vw, 58px);
+    line-height: 0.9;
+    white-space: nowrap;
+  }
+
+  .home h1 br {
+    display: none;
+  }
+
+  .home__en {
+    margin: 5px 0 3px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+  }
+
+  .micro-wave,
+  .home__stats {
+    display: none;
+  }
+
+  .lede {
+    margin: 5px 0 0;
+    font-size: 10px;
+    line-height: 1.45;
+  }
+
+  .home .actions {
+    margin-top: 8px;
+    flex-direction: row;
+    gap: 7px;
+  }
+
+  .home .button {
+    width: 50%;
+    min-height: 38px;
+    padding: 0 9px;
+    gap: 6px;
+    justify-content: center;
+    font-size: 9px;
+  }
+
+  .signal-console {
+    min-height: 0;
+    height: 100%;
+    padding: 9px 10px 7px;
+  }
+
+  .console-head {
+    font-size: 6px;
+  }
+
+  .channel-track {
+    height: 21%;
+    min-height: 42px;
+    grid-template-columns: 27px 1fr;
+    gap: 6px;
+  }
+
+  .channel-letter {
+    font-size: 25px;
+  }
+
+  .channel-track .waveform {
+    height: 42px;
+  }
+
+  .merge-zone {
+    height: 37%;
+    min-height: 60px;
+  }
+
+  .compatibility {
+    width: 116px;
+    padding: 6px 8px;
+  }
+
+  .compatibility small {
+    font-size: 6px;
+  }
+
+  .compatibility strong {
+    font-size: clamp(36px, 11vw, 46px);
+  }
+
+  .compatibility sup {
+    font-size: 14px;
+  }
+
+  .meter {
+    margin-top: 4px;
+  }
+
+  .meter i {
+    width: 6px;
+    height: 3px;
+  }
+
+  .console-tabs {
+    height: 29px;
+    padding-top: 4px;
+    overflow: hidden;
+  }
+
+  .console-tabs button {
+    min-width: 0;
+    padding: 4px 2px;
+    font-size: 7px;
+  }
+
+  /* All following screens use natural portrait scrolling. */
+  .page-shell {
+    height: auto;
+    min-height: calc(100vh - 52px);
+    min-height: calc(100dvh - 52px);
+    padding: 18px 0 72px;
+    overflow: visible;
+  }
+
+  .channels-page .page-heading {
+    margin-bottom: 18px;
+  }
+
+  .duo-page {
+    height: auto;
+    overflow: visible;
+  }
+
+  .duo-hero {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .duo-score {
+    width: min(230px, 72vw);
+    margin: 0 auto;
+  }
+
+  .duo-hero__copy {
+    text-align: center;
+  }
+
+  .duo-rank-line,
+  .duo-identities {
+    justify-content: center;
+  }
+
+  .duo-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .duo-analysis,
+  .duo-choices {
+    grid-template-columns: 1fr;
+  }
+
+  .duo-final {
+    align-items: stretch;
+  }
+
+  .duo-final .actions {
+    width: 100%;
+  }
+
+  .poster-modal {
+    overflow-y: auto;
+    align-items: flex-start;
+  }
+
+  .poster-dialog {
+    max-height: none;
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .poster-dialog__head,
+  .poster-dialog__foot {
+    grid-column: 1;
   }
 }
 
