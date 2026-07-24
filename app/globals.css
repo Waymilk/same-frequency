@@ -3167,6 +3167,44 @@ button { color: inherit; font: inherit; }
     letter-spacing: 0;
   }
 
+  .trait-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .trait-pair > div {
+    min-width: 0;
+    min-height: 86px;
+    padding: 13px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  .trait-pair span {
+    flex: 0 0 100%;
+    width: 100%;
+  }
+
+  .trait-pair strong {
+    flex: 1 1 0;
+    min-width: 0;
+    align-self: flex-end;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .trait-pair b {
+    flex: 0 0 auto;
+    min-width: 42px;
+    align-self: flex-end;
+    text-align: right;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+
   .app[data-screen="duoResult"] {
     height: 100vh;
     height: 100dvh;
@@ -3202,6 +3240,9 @@ button { color: inherit; font: inherit; }
   }
 
   .duo-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     min-height: 0;
     gap: 16px;
     padding: 24px 0 30px;
@@ -3213,7 +3254,17 @@ button { color: inherit; font: inherit; }
   }
 
   .duo-score {
+    flex: 0 0 auto;
     width: min(205px, 58vw);
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .duo-score strong {
+    max-width: 100%;
+    font-size: 72px;
+    letter-spacing: 0;
+    white-space: nowrap;
   }
 
   .duo-hero__copy,
@@ -3257,36 +3308,53 @@ button { color: inherit; font: inherit; }
   }
 
   .duo-metrics {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    display: flex;
+    flex-wrap: wrap;
   }
 
   .duo-metrics > div {
+    flex: 1 1 50%;
+    width: 50%;
     min-width: 0;
     min-height: 104px;
     padding: 13px 12px;
-  }
-
-  .duo-metrics > div:nth-child(2) {
     border-right: 0;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
   }
 
-  .duo-metrics > div:nth-child(-n+2) {
-    border-bottom: 1px solid var(--line);
+  .duo-metrics > div:nth-child(odd) {
+    border-right: 1px solid var(--line);
+  }
+
+  .duo-metrics > div:nth-last-child(-n+2) {
+    border-bottom: 0;
   }
 
   .duo-metrics span,
   .duo-metrics small {
+    flex: 0 0 auto;
+    width: 100%;
     max-width: 100%;
     overflow-wrap: anywhere;
   }
 
   .duo-metrics strong {
-    font-size: clamp(32px, 11vw, 44px);
+    flex: 0 0 auto;
+    width: 100%;
+    font-size: 40px;
+    letter-spacing: 0;
+    white-space: nowrap;
   }
 
   .duo-analysis,
   .duo-choices {
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: 12px;
     margin-top: 12px;
   }
@@ -3299,7 +3367,8 @@ button { color: inherit; font: inherit; }
   }
 
   .duo-radar-panel {
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: 14px;
   }
 
@@ -3332,13 +3401,35 @@ button { color: inherit; font: inherit; }
 
   .duo-dimensions {
     width: 100%;
+    display: flex;
+    flex-direction: column;
     gap: 9px;
   }
 
   .duo-dimensions > div {
     min-width: 0;
-    grid-template-columns: 26px minmax(52px, 68px) minmax(0, 1fr) 34px;
+    display: flex;
+    align-items: center;
     gap: 5px;
+  }
+
+  .duo-dimensions > div > span {
+    flex: 0 0 26px;
+  }
+
+  .duo-dimensions > div > strong {
+    flex: 0 1 68px;
+    min-width: 52px;
+  }
+
+  .duo-dimensions > div > div {
+    flex: 1 1 auto;
+    min-width: 24px;
+  }
+
+  .duo-dimensions > div > em {
+    flex: 0 0 34px;
+    white-space: nowrap;
   }
 
   .resonance-list > div {
@@ -3392,6 +3483,26 @@ button { color: inherit; font: inherit; }
 
   .duo-final .button {
     width: 100%;
+  }
+}
+
+@media (max-width: 350px) and (orientation: portrait) {
+  .duo-score strong {
+    font-size: 64px;
+  }
+
+  .duo-metrics > div {
+    min-height: 98px;
+    padding: 11px 9px;
+  }
+
+  .duo-metrics strong {
+    font-size: 36px;
+  }
+
+  .duo-dimensions > div > strong {
+    flex-basis: 58px;
+    min-width: 46px;
   }
 }
 
