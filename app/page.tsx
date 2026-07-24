@@ -6,10 +6,17 @@ import {
   isWechatBrowser,
   type WechatShareStatus,
 } from "../lib/wechat-client";
+import {
+  QUESTION_COUNT,
+  legacyQuestionIds,
+  questionsForIds,
+  sampleQuestionIds,
+  type ChannelKey,
+  type DimensionKey,
+  type Question,
+} from "../lib/questions";
 
-type ChannelKey = "chinese" | "western" | "kpop" | "acg";
 type Screen = "home" | "channels" | "join" | "quiz" | "mbti" | "profile" | "invite" | "duoResult";
-type DimensionKey = "emotion" | "energy" | "mainstream" | "discovery" | "nostalgia" | "live";
 type ParticipantRole = "solo" | "host" | "guest";
 type RoomStatus = "idle" | "loading" | "waiting" | "completed" | "expired" | "error";
 type WechatAssist = {
@@ -27,11 +34,6 @@ type Channel = {
   tag: string;
   description: string;
   signal: string;
-};
-
-type Question = {
-  title: string;
-  options: string[];
 };
 
 type Dimension = {
@@ -134,25 +136,6 @@ const dimensionProfiles: Record<DimensionKey, number[]> = {
   live: [42, 88, 60, 64, 34, 96],
 };
 
-const optionProfiles: DimensionKey[][] = [
-  ["nostalgia", "emotion", "mainstream", "energy", "nostalgia", "discovery"],
-  ["emotion", "emotion", "discovery", "mainstream", "discovery", "nostalgia"],
-  ["energy", "mainstream", "live", "energy", "nostalgia", "mainstream"],
-  ["emotion", "emotion", "emotion", "energy", "nostalgia", "emotion"],
-  ["energy", "mainstream", "energy", "live", "nostalgia", "mainstream"],
-  ["emotion", "nostalgia", "emotion", "discovery", "emotion", "emotion"],
-  ["energy", "energy", "mainstream", "live", "energy", "mainstream"],
-  ["emotion", "mainstream", "emotion", "energy", "discovery", "nostalgia"],
-  ["mainstream", "live", "energy", "mainstream", "nostalgia", "discovery"],
-  ["live", "discovery", "energy", "discovery", "live", "nostalgia"],
-  ["nostalgia", "emotion", "discovery", "mainstream", "energy", "mainstream"],
-  ["nostalgia", "discovery", "mainstream", "emotion", "discovery", "nostalgia"],
-  ["mainstream", "emotion", "live", "discovery", "nostalgia", "energy"],
-  ["live", "mainstream", "energy", "live", "discovery", "nostalgia"],
-  ["emotion", "discovery", "nostalgia", "energy", "emotion", "discovery"],
-  ["mainstream", "emotion", "energy", "discovery", "nostalgia", "live"],
-];
-
 const profileTitles: Record<DimensionKey, string> = {
   emotion: "深夜情绪收藏家",
   energy: "高能声场发动机",
@@ -244,12 +227,12 @@ const mbtiDescriptions: Record<string, string> = {
   ESFP: "你会把音乐变成当下的高光，让每次播放都像一场小型演出。",
 };
 
-function calculateProfile(answers: Record<number, number>): PersonalProfile {
+function calculateProfile(answers: Record<number, number>, questions: Question[]): PersonalProfile {
   const totals = Object.fromEntries(dimensions.map(({ key }) => [key, 0])) as Record<DimensionKey, number>;
   const validAnswers = Object.entries(answers).filter(([, optionIndex]) => optionIndex >= 0);
 
   validAnswers.forEach(([questionIndex, optionIndex]) => {
-    const profileKey = optionProfiles[Number(questionIndex)]?.[optionIndex] ?? "discovery";
+    const profileKey = questions[Number(questionIndex)]?.profileKeys[optionIndex] ?? "discovery";
     const weights = dimensionProfiles[profileKey];
     dimensions.forEach(({ key }, dimensionIndex) => {
       totals[key] += weights[dimensionIndex];
@@ -283,81 +266,6 @@ function radarPoints(values: number[], radius = 82, center = 100) {
     })
     .join(" ");
 }
-
-const questionSets: Record<ChannelKey, Question[]> = {
-  chinese: [
-    { title: "六首华语歌只能留下一首", options: ["周杰伦《晴天》", "孙燕姿《遇见》", "陈奕迅《富士山下》", "五月天《温柔》", "张学友《她来听我的演唱会》", "王菲《红豆》"] },
-    { title: "凌晨两点，你最可能循环", options: ["毛不易《消愁》", "方大同《特别的人》", "草东没有派对《山海》", "蔡健雅《红色高跟鞋》", "郭顶《水星记》", "张悬《宝贝》"] },
-    { title: "自驾出发时播放第一首", options: ["告五人《爱人错过》", "苏打绿《无与伦比的美丽》", "逃跑计划《夜空中最亮的星》", "陶喆《小镇姑娘》", "朴树《平凡之路》", "孙燕姿《第一天》"] },
-    { title: "失恋当天只允许听一首", options: ["陈奕迅《十年》", "梁静茹《可惜不是你》", "周杰伦《说好的幸福呢》", "孙燕姿《我怀念的》", "薛之谦《演员》", "张惠妹《我最亲爱的》"] },
-    { title: "KTV 开场，你会选择", options: ["五月天《恋爱ING》", "周杰伦《简单爱》", "林俊杰《江南》", "陈奕迅《浮夸》", "王力宏《大城小爱》", "张学友《吻别》"] },
-    { title: "一个人走在雨里，你会播放", options: ["孙燕姿《雨天》", "周杰伦《搁浅》", "莫文蔚《阴天》", "房东的猫《云烟成雨》", "陶喆《寂寞的季节》", "林俊杰《她说》"] },
-    { title: "需要快速恢复能量时", options: ["GALA《追梦赤子心》", "五月天《倔强》", "逃跑计划《夜空中最亮的星》", "新裤子《你要跳舞吗》", "羽泉《奔跑》", "张杰《逆战》"] },
-    { title: "想把一首歌发给喜欢的人", options: ["方大同《特别的人》", "周杰伦《告白气球》", "陈奕迅《陪你度过漫长岁月》", "五月天《私奔到月球》", "陶喆《爱，很简单》", "王菲《我愿意》"] },
-    { title: "只能看一场华语演唱会", options: ["周杰伦", "陈奕迅", "五月天", "林俊杰", "张学友", "王力宏"] },
-    { title: "音乐节六个舞台同时开演", options: ["草东没有派对", "告五人", "新裤子", "万能青年旅店", "痛仰", "逃跑计划"] },
-    { title: "只能保留一位华语女歌手", options: ["孙燕姿", "王菲", "蔡健雅", "梁静茹", "张惠妹", "莫文蔚"] },
-    { title: "只能保留一位创作歌手", options: ["陶喆", "方大同", "李荣浩", "毛不易", "周深", "郭顶"] },
-    { title: "以后只能听一种华语曲风", options: ["华语流行", "R&B / Soul", "摇滚 / 独立音乐", "民谣", "粤语流行", "电子 / 舞曲"] },
-    { title: "你最想站在哪一种现场", options: ["Livehouse 摇滚现场", "大型流行演唱会", "户外音乐节", "小型不插电现场", "爵士酒馆", "交响音乐会"] },
-    { title: "工作或学习时适合播放", options: ["华语 Lo-fi", "City Pop", "轻民谣", "完全不能听歌", "古典钢琴", "白噪音 / 环境音"] },
-    { title: "只能用一首歌介绍你的音乐审美，你会选？", options: ["周杰伦《简单爱》", "陈奕迅《陪你度过漫长岁月》", "五月天《私奔到月球》", "方大同《特别的人》", "陶喆《爱，很简单》", "王菲《我愿意》"] },
-  ],
-  western: [
-    { title: "六首欧美歌只能留下一首", options: ["Coldplay《Yellow》", "Taylor Swift《Cruel Summer》", "The Weeknd《Blinding Lights》", "Billie Eilish《bad guy》", "Adele《Rolling in the Deep》", "Queen《Bohemian Rhapsody》"] },
-    { title: "凌晨两点，你最可能循环", options: ["Lana Del Rey《Summertime Sadness》", "Adele《Someone Like You》", "Lord Huron《The Night We Met》", "The Weeknd《Die For You》", "Billie Eilish《ocean eyes》", "Joji《SLOW DANCING IN THE DARK》"] },
-    { title: "自驾出发时播放第一首", options: ["Dua Lipa《Levitating》", "Harry Styles《As It Was》", "WALK THE MOON《Shut Up and Dance》", "Avicii《Wake Me Up》", "Fleetwood Mac《Dreams》", "Bruce Springsteen《Born to Run》"] },
-    { title: "失恋当天只允许听一首", options: ["Olivia Rodrigo《drivers license》", "Lewis Capaldi《Someone You Loved》", "Miley Cyrus《Flowers》", "Kelly Clarkson《Since U Been Gone》", "Adele《Easy On Me》", "Taylor Swift《All Too Well》"] },
-    { title: "派对开场，你会播放", options: ["Mark Ronson ft. Bruno Mars《Uptown Funk》", "Dua Lipa《Don't Start Now》", "The Black Eyed Peas《I Gotta Feeling》", "The Weeknd《Starboy》", "ABBA《Dancing Queen》", "Lady Gaga《Poker Face》"] },
-    { title: "一个人走在雨里，你会播放", options: ["Radiohead《Creep》", "Coldplay《The Scientist》", "Taylor Swift《cardigan》", "Cigarettes After Sex《Apocalypse》", "Bon Iver《Holocene》", "Adele《When We Were Young》"] },
-    { title: "需要快速恢复能量时", options: ["Queen《Don't Stop Me Now》", "Kanye West《Stronger》", "David Guetta ft. Sia《Titanium》", "Imagine Dragons《Believer》", "Eminem《Lose Yourself》", "Survivor《Eye of the Tiger》"] },
-    { title: "想把一首歌发给喜欢的人", options: ["Coldplay《Yellow》", "Taylor Swift《Lover》", "Bruno Mars《Just the Way You Are》", "Daniel Caesar ft. H.E.R.《Best Part》", "Ed Sheeran《Perfect》", "Harry Styles《Adore You》"] },
-    { title: "只能看一场欧美演唱会", options: ["Taylor Swift", "The Weeknd", "Beyoncé", "Bruno Mars", "Adele", "Coldplay"] },
-    { title: "音乐节六个舞台同时开演", options: ["Coldplay", "Arctic Monkeys", "Kendrick Lamar", "Calvin Harris", "Billie Eilish", "Tame Impala"] },
-    { title: "只能保留一位欧美女歌手", options: ["Adele", "Lana Del Rey", "Billie Eilish", "Dua Lipa", "Beyoncé", "Taylor Swift"] },
-    { title: "只能保留一支乐队", options: ["The Beatles", "Queen", "Radiohead", "Coldplay", "Arctic Monkeys", "Nirvana"] },
-    { title: "以后只能听一种欧美曲风", options: ["Pop", "R&B / Soul", "Rock / Indie", "Hip-Hop / Rap", "Electronic / Dance", "Folk / Country"] },
-    { title: "你最想站在哪一种现场", options: ["体育场流行演唱会", "摇滚音乐节", "地下 Hip-Hop 现场", "电子音乐节", "Jazz Club", "小型不插电现场"] },
-    { title: "工作或学习时适合播放", options: ["Lo-fi Hip Hop", "Jazz", "Indie Pop", "完全不能听歌", "Classical / Piano", "Ambient"] },
-    { title: "只能用一首歌介绍你的音乐审美，你会选？", options: ["Taylor Swift《Lover》", "Coldplay《Yellow》", "Lady Gaga & Bruno Mars《Die With A Smile》", "Stephen Sanchez《Until I Found You》", "Harry Styles《Adore You》", "Daniel Caesar ft. H.E.R.《Best Part》"] },
-  ],
-  kpop: [
-    { title: "六首代表性主打歌只能留下一首", options: ["Girls' Generation《Gee》", "BIGBANG《FANTASTIC BABY》", "BLACKPINK《DDU-DU DDU-DU》", "BTS《Dynamite》", "EXO《Growl》", "TWICE《TT》"] },
-    { title: "凌晨两点，你最可能循环", options: ["IU《Through the Night》", "BTS《Spring Day》", "NewJeans《Ditto》", "LeeHi《BREATHE》", "TAEYEON《11:11》", "DEAN《instagram》"] },
-    { title: "出发时播放第一首", options: ["NewJeans《Super Shy》", "IVE《After LIKE》", "(G)I-DLE《Queencard》", "aespa《Supernova》", "LE SSERAFIM《ANTIFRAGILE》", "Stray Kids《MANIAC》"] },
-    { title: "情绪低落时只允许听一首", options: ["TAEYANG《EYES, NOSE, LIPS》", "LeeHi《ONLY》", "TAEYEON《Fine》", "iKON《LOVE SCENARIO》", "AKMU《How can I love the heartbreak, you're the one I love》", "BTS《The Truth Untold》"] },
-    { title: "聚会开场，你会播放", options: ["BIGBANG《BANG BANG BANG》", "aespa《Next Level》", "LE SSERAFIM《ANTIFRAGILE》", "Stray Kids《God's Menu》", "2NE1《I AM THE BEST》", "PSY《GANGNAM STYLE》"] },
-    { title: "一个人走在雨里，你会播放", options: ["TAEYEON《11:11》", "DEAN《instagram》", "HEIZE《You, Clouds, Rain》", "IU《Through the Night》", "BOL4《To My Youth》", "Epik High《Rain Song》"] },
-    { title: "需要快速恢复能量时", options: ["SEVENTEEN《VERY NICE》", "ITZY《WANNABE》", "BTS《FIRE》", "IVE《I AM》", "NCT 127《Kick It》", "ATEEZ《BOUNCY》"] },
-    { title: "想把一首歌发给喜欢的人", options: ["BOL4《Some》", "AKMU《Love Lee》", "LeeHi《ONLY》", "SEVENTEEN《Darling》", "IU《Blueming》", "Red Velvet《Would U》"] },
-    { title: "只能看一场团体演唱会", options: ["BTS", "BLACKPINK", "SEVENTEEN", "TWICE", "EXO", "Stray Kids"] },
-    { title: "只能保留一个女团", options: ["Girls' Generation", "BLACKPINK", "aespa", "IVE", "TWICE", "(G)I-DLE"] },
-    { title: "只能保留一位 SOLO 歌手", options: ["IU", "TAEYEON", "G-DRAGON", "DEAN", "ZICO", "BIBI"] },
-    { title: "只能看一位表演者的个人舞台", options: ["TAEMIN", "j-hope", "LISA", "KAI", "HYUNA", "JUNG KOOK"] },
-    { title: "以后只能保留一种 KPOP 风格", options: ["清新 / Y2K", "强烈 Hip-Hop", "梦幻概念", "复古 Disco", "Band / Live Sound", "Ballad / OST"] },
-    { title: "你最想站在哪一种现场", options: ["打歌节目录制", "体育场巡演", "拼盘音乐节", "小型 Fan Meeting", "Club DJ Set", "Acoustic Live"] },
-    { title: "工作或学习时适合播放", options: ["K-R&B", "抒情 OST", "轻快女团歌单", "完全不能听歌", "Piano Cover", "Instrumental Playlist"] },
-    { title: "只能用一首歌介绍你的音乐审美，你会选？", options: ["iKON《LOVE SCENARIO》", "BOL4《Some》", "BTS《Boy With Luv》", "TWICE《What Is Love?》", "IU《Blueming》", "SEVENTEEN《_WORLD》"] },
-  ],
-  acg: [
-    { title: "六首经典主题曲只能留下一首", options: ["高橋洋子《残酷な天使のテーゼ》", "和田光司《Butter-Fly》", "fripSide《only my railgun》", "Linked Horizon《紅蓮の弓矢》", "LiSA《crossing field》", "FLOW《GO!!!》"] },
-    { title: "凌晨两点，你最可能循环", options: ["茅原実里《優しい忘却》", "supercell《君の知らない物語》", "TK from 凛として時雨《unravel》", "RADWIMPS《なんでもないや》", "Aimer《Ref:rain》", "EGOIST《Departures》"] },
-    { title: "出发时播放第一首", options: ["YUI《again》", "米津玄師《ピースサイン》", "キタニタツヤ《青のすみか》", "米津玄師《KICK BACK》", "SPYAIR《イマジネーション》", "LiSA《紅蓮華》"] },
-    { title: "情绪低落时只允许听一首", options: ["Girls Dead Monster《一番の宝物》", "茅野愛衣、戸松遥、早見沙織《secret base》", "奥華子《変わらないもの》", "EGOIST《Departures》", "Aimer《茜さす》", "Lia《鳥の詩》"] },
-    { title: "聚会开场，你会播放", options: ["和田光司《Butter-Fly》", "FLOW《GO!!!》", "LiSA《crossing field》", "JAM Project《THE HERO!!》", "ClariS《コネクト》", "KANA-BOON《シルエット》"] },
-    { title: "一个人走在雨里，你会播放", options: ["つじあやの《風になる》", "手嶌葵《テルーの唄》", "木村弓《いつも何度でも》", "ヨルシカ《晴る》", "Aimer《Ref:rain》", "RADWIMPS《スパークル》"] },
-    { title: "需要快速恢复能量时", options: ["LiSA《紅蓮華》", "Eve《廻廻奇譚》", "YOASOBI《怪物》", "SiM《The Rumbling》", "Linked Horizon《紅蓮の弓矢》", "SawanoHiroyuki[nZk]:mizuki《aLIEz》"] },
-    { title: "想把一首歌发给喜欢的人", options: ["supercell《君の知らない物語》", "RADWIMPS《なんでもないや》", "花澤香菜《恋愛サーキュレーション》", "Goose house《光るなら》", "ClariS《コネクト》", "Aimer《カタオモイ》"] },
-    { title: "只能看一场歌手现场", options: ["LiSA", "Aimer", "YOASOBI", "RADWIMPS", "ReoNa", "fripSide"] },
-    { title: "只能保留一个动画音乐团体", options: ["FLOW", "Linked Horizon", "BUMP OF CHICKEN", "SPYAIR", "MAN WITH A MISSION", "ASIAN KUNG-FU GENERATION"] },
-    { title: "只能保留一位 Vocaloid 创作者", options: ["DECO*27", "wowaka", "ryo（supercell）", "ハチ", "kz（livetune）", "ピノキオピー"] },
-    { title: "只能保留一位配乐创作者", options: ["久石让", "梶浦由记", "泽野弘之", "川井宪次", "菅野洋子", "田中公平"] },
-    { title: "以后只能保留一种二次元音乐类型", options: ["动画摇滚 OP", "J-Pop", "Vocaloid", "OST / 管弦配乐", "音游曲", "动画角色歌"] },
-    { title: "你最想站在哪一种现场", options: ["Anisong 大型演唱会", "动画交响音乐会", "Vocaloid 虚拟演唱会", "日系乐队 Livehouse", "动漫展舞台", "游戏音乐会"] },
-    { title: "工作或学习时适合播放", options: ["吉卜力钢琴曲", "Anime Lo-fi", "游戏原声", "完全不能听歌", "Vocaloid 钢琴改编", "环境音"] },
-    { title: "只能用一首歌介绍你的音乐审美，你会选？", options: ["supercell《君の知らない物語》", "RADWIMPS《なんでもないや》", "secret base ～君がくれたもの～", "花澤香菜《恋愛サーキュレーション》", "Goose house《光るなら》", "ClariS《コネクト》"] },
-  ],
-};
 
 const Waveform = ({ compact = false }: { compact?: boolean }) => (
   <div className={`waveform ${compact ? "waveform--compact" : ""}`} aria-hidden="true">
@@ -411,6 +319,7 @@ async function loadQrImage(value: string, width: number, errorCorrectionLevel: "
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("home");
   const [channelKey, setChannelKey] = useState<ChannelKey>("chinese");
+  const [questionIds, setQuestionIds] = useState<string[]>(() => legacyQuestionIds("chinese"));
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [mbtiLetters, setMbtiLetters] = useState(["", "", "", ""]);
@@ -436,12 +345,15 @@ export default function Home() {
   const wechatOriginalUrl = useRef<string | null>(null);
 
   const channel = channels.find((item) => item.key === channelKey)!;
-  const questions = questionSets[channelKey];
+  const questions = useMemo(() => {
+    const selected = questionsForIds(channelKey, questionIds);
+    return selected.length === QUESTION_COUNT ? selected : questionsForIds(channelKey, legacyQuestionIds(channelKey));
+  }, [channelKey, questionIds]);
   const question = questions[questionIndex];
   const progress = ((questionIndex + 1) / questions.length) * 100;
 
   const completed = useMemo(() => Object.keys(answers).length, [answers]);
-  const profile = useMemo(() => calculateProfile(answers), [answers]);
+  const profile = useMemo(() => calculateProfile(answers, questions), [answers, questions]);
   const profileValues = dimensions.map(({ key }) => profile.scores[key]);
   const mbti = mbtiLetters.join("");
   const mbtiComplete = mbtiLetters.every(Boolean);
@@ -486,12 +398,13 @@ export default function Home() {
     fetch(`/api/rooms?code=${encodeURIComponent(code)}`)
       .then(async (response) => {
         const data = await response.json() as {
-          room?: { channel: ChannelKey; status: RoomStatus };
+          room?: { channel: ChannelKey; status: RoomStatus; questionIds: string[] };
           report?: DuoReport | null;
           error?: string;
         };
         if (!response.ok || !data.room) throw new Error(data.error || "房间载入失败");
         setChannelKey(data.room.channel);
+        setQuestionIds(data.room.questionIds);
         setRoomStatus(data.room.status);
         setDuoReport(data.report ?? null);
         setScreen(data.room.status === "completed" && data.report ? "duoResult" : "join");
@@ -552,6 +465,7 @@ export default function Home() {
     window.history.replaceState({}, "", window.location.pathname);
     setScreen("home");
     setQuestionIndex(0);
+    setQuestionIds(legacyQuestionIds(channelKey));
     setAnswers({});
     setMbtiLetters(["", "", "", ""]);
     setParticipantRole("solo");
@@ -571,6 +485,7 @@ export default function Home() {
 
   const chooseChannel = (key: ChannelKey) => {
     setChannelKey(key);
+    setQuestionIds(legacyQuestionIds(key));
     setQuestionIndex(0);
     setAnswers({});
     setMbtiLetters(["", "", "", ""]);
@@ -580,6 +495,7 @@ export default function Home() {
   };
 
   const startQuiz = () => {
+    if (participantRole !== "guest") setQuestionIds(sampleQuestionIds(channelKey));
     setQuestionIndex(0);
     setAnswers({});
     setMbtiLetters(["", "", "", ""]);
@@ -645,6 +561,7 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           channel: channelKey,
+          questionIds,
           answers,
           scores: profile.scores,
           mbti: mbtiComplete ? mbti : undefined,
@@ -915,6 +832,7 @@ export default function Home() {
   const startNewDuo = () => {
     window.history.replaceState({}, "", window.location.pathname);
     setQuestionIndex(0);
+    setQuestionIds(legacyQuestionIds(channelKey));
     setAnswers({});
     setMbtiLetters(["", "", "", ""]);
     setParticipantRole("solo");

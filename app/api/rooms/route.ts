@@ -1,4 +1,10 @@
 import { getDb } from "../../../db/index.ts";
+import {
+  QUESTION_COUNT,
+  legacyQuestionIds,
+  questionSelectionError,
+  type ChannelKey,
+} from "../../../lib/questions.ts";
 
 export const runtime = "nodejs";
 
@@ -18,6 +24,7 @@ const DUO_TITLES: Record<(typeof SCORE_KEYS)[number], string> = {
 type RoomPayload = {
   code?: string;
   channel?: string;
+  questionIds?: string[];
   answers?: Record<string, number>;
   scores?: Record<string, number>;
   mbti?: string;
@@ -41,13 +48,13 @@ function validMbti(value: string | undefined) {
 export function signalValidationError(payload: RoomPayload) {
   if (!payload.answers) return "未收到答题结果，请返回重新完成测试";
 
-  const missingAnswers = Array.from({ length: 16 }, (_, index) => index)
+  const missingAnswers = Array.from({ length: QUESTION_COUNT }, (_, index) => index)
     .filter((index) => !Object.prototype.hasOwnProperty.call(payload.answers, index));
   if (missingAnswers.length) {
     return `有 ${missingAnswers.length} 道题未保存，请返回第 ${missingAnswers[0] + 1} 题继续`;
   }
 
-  const invalidAnswer = Array.from({ length: 16 }, (_, index) => payload.answers?.[index])
+  const invalidAnswer = Array.from({ length: QUESTION_COUNT }, (_, index) => payload.answers?.[index])
     .some((value) => !Number.isInteger(value) || value! < -1 || value! > 5);
   if (invalidAnswer) return "答题结果格式异常，请重新选择对应题目";
 
@@ -75,6 +82,7 @@ async function ensureRoomsTable() {
         host_answers TEXT NOT NULL,
         host_scores TEXT NOT NULL,
         host_mbti TEXT,
+        question_ids TEXT,
         guest_answers TEXT,
         guest_scores TEXT,
         guest_mbti TEXT,
@@ -83,6 +91,7 @@ async function ensureRoomsTable() {
         completed_at BIGINT
       )
       `;
+      await db`ALTER TABLE rooms ADD COLUMN IF NOT EXISTS question_ids TEXT`;
       await db`CREATE INDEX IF NOT EXISTS rooms_expires_at_idx ON rooms (expires_at)`;
     })().catch((error) => {
       roomsTableReady = null;
@@ -99,6 +108,7 @@ type RoomRecord = {
   host_answers: string;
   host_scores: string;
   host_mbti: string | null;
+  question_ids: string | null;
   guest_answers: string | null;
   guest_scores: string | null;
   guest_mbti: string | null;
@@ -112,7 +122,7 @@ async function findRoom(code: string) {
   const rows = await db`
     SELECT
       code, channel, status,
-      host_answers, host_scores, host_mbti,
+      host_answers, host_scores, host_mbti, question_ids,
       guest_answers, guest_scores, guest_mbti,
       created_at, expires_at, completed_at
     FROM rooms
@@ -131,11 +141,24 @@ function publicRoom(room: Awaited<ReturnType<typeof findRoom>>) {
   return {
     code: room.code,
     channel: room.channel,
+    questionIds: storedQuestionIds(room.channel as ChannelKey, room.question_ids),
     status: expired ? "expired" : room.status,
     createdAt,
     expiresAt,
     completedAt,
   };
+}
+
+export function storedQuestionIds(channel: ChannelKey, source: string | null) {
+  if (source) {
+    try {
+      const ids = JSON.parse(source) as unknown;
+      if (!questionSelectionError(channel, ids)) return ids as string[];
+    } catch {
+      // Old or malformed rows use the original fixed question set.
+    }
+  }
+  return legacyQuestionIds(channel);
 }
 
 function parseRecord(source: string | null) {
@@ -163,7 +186,7 @@ function buildReport(room: NonNullable<Awaited<ReturnType<typeof findRoom>>>) {
   const hostScores = parseRecord(room.host_scores);
   const guestScores = parseRecord(room.guest_scores);
 
-  const comparable = Array.from({ length: 16 }, (_, index) => index).filter(
+  const comparable = Array.from({ length: QUESTION_COUNT }, (_, index) => index).filter(
     (index) => (hostAnswers[index] ?? -1) >= 0 && (guestAnswers[index] ?? -1) >= 0,
   );
   const exactIndices = comparable.filter((index) => hostAnswers[index] === guestAnswers[index]);
@@ -253,6 +276,11 @@ export async function POST(request: Request) {
     if (!payload.channel || !VALID_CHANNELS.has(payload.channel)) {
       return Response.json({ error: "测试频道无效，请重新选择频道" }, { status: 400 });
     }
+    const channel = payload.channel as ChannelKey;
+    const selectionError = questionSelectionError(channel, payload.questionIds);
+    if (selectionError) {
+      return Response.json({ error: selectionError }, { status: 400 });
+    }
     if (signalError) {
       return Response.json({ error: signalError }, { status: 400 });
     }
@@ -265,7 +293,7 @@ export async function POST(request: Request) {
       const code = roomCode();
       const inserted = await db`
         INSERT INTO rooms (
-          code, channel, status, host_answers, host_scores, host_mbti, created_at, expires_at
+          code, channel, status, host_answers, host_scores, host_mbti, question_ids, created_at, expires_at
         ) VALUES (
           ${code},
           ${payload.channel},
@@ -273,6 +301,7 @@ export async function POST(request: Request) {
           ${JSON.stringify(payload.answers)},
           ${JSON.stringify(payload.scores)},
           ${validMbti(payload.mbti)},
+          ${JSON.stringify(payload.questionIds)},
           ${now},
           ${now + ROOM_LIFETIME_MS}
         )
@@ -285,6 +314,7 @@ export async function POST(request: Request) {
           room: {
             code,
             channel: payload.channel,
+            questionIds: payload.questionIds,
             status: "waiting",
             createdAt: now,
             expiresAt: now + ROOM_LIFETIME_MS,

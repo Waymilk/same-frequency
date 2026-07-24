@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS rooms (
   host_answers TEXT NOT NULL,
   host_scores TEXT NOT NULL,
   host_mbti TEXT,
+  question_ids TEXT,
   guest_answers TEXT,
   guest_scores TEXT,
   guest_mbti TEXT,
