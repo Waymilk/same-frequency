@@ -433,6 +433,7 @@ export default function Home() {
   const answerLock = useRef(false);
   const homeChannelsRef = useRef<HTMLDivElement>(null);
   const wechatShareRequest = useRef(0);
+  const wechatOriginalUrl = useRef<string | null>(null);
 
   const channel = channels.find((item) => item.key === channelKey)!;
   const questions = questionSets[channelKey];
@@ -845,7 +846,19 @@ export default function Home() {
 
   const closeWechatAssist = () => {
     wechatShareRequest.current += 1;
+    if (wechatOriginalUrl.current !== null) {
+      window.history.replaceState(window.history.state, "", wechatOriginalUrl.current);
+      wechatOriginalUrl.current = null;
+    }
     setWechatAssist(null);
+  };
+
+  const bindWechatShareToRoom = () => {
+    if (!inviteUrl) return;
+    if (wechatOriginalUrl.current === null) {
+      wechatOriginalUrl.current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    }
+    window.history.replaceState(window.history.state, "", inviteUrl);
   };
 
   const downloadInvitePoster = () => {
@@ -867,6 +880,7 @@ export default function Home() {
     if (isWechatBrowser()) {
       const requestId = ++wechatShareRequest.current;
       const title = `同频播放｜加入我的 ${channel.name} 双人测试`;
+      bindWechatShareToRoom();
       setWechatAssist({ mode: "share", posterUrl: invitePosterUrl, title, status: "loading" });
       const status = await configureWechatShare({
         title,
@@ -972,7 +986,9 @@ export default function Home() {
     context.fillText("SAME FREQUENCY", 116, 91);
     context.fillStyle = "#74829a";
     context.font = "600 15px ui-monospace, SFMono-Regular, Menlo, monospace";
-    context.fillText(`${channel.code} CHANNEL  /  ROOM ${roomCode}`, 670, 88);
+    context.textAlign = "right";
+    context.fillText(`${channel.code} CHANNEL  /  ROOM ${roomCode}`, 1022, 88);
+    context.textAlign = "left";
 
     context.strokeStyle = "rgba(145,174,214,.26)";
     context.beginPath();
@@ -986,7 +1002,7 @@ export default function Home() {
     context.fillStyle = "#f4f7ff";
     context.font = "900 92px PingFang SC, Microsoft YaHei, sans-serif";
     let titleSize = 92;
-    while (context.measureText(duoReport.tier.title).width > 650 && titleSize > 56) {
+    while (context.measureText(duoReport.tier.title).width > 540 && titleSize > 52) {
       titleSize -= 4;
       context.font = `900 ${titleSize}px PingFang SC, Microsoft YaHei, sans-serif`;
     }
@@ -1001,24 +1017,24 @@ export default function Home() {
     context.strokeStyle = palette.accent2;
     context.lineWidth = 9;
     context.beginPath();
-    context.arc(823, 305, 154, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (duoReport.score / 100));
+    context.arc(836, 304, 132, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (duoReport.score / 100));
     context.stroke();
     context.restore();
     context.strokeStyle = "rgba(150,178,216,.2)";
     context.lineWidth = 2;
     context.beginPath();
-    context.arc(823, 305, 154, 0, Math.PI * 2);
+    context.arc(836, 304, 132, 0, Math.PI * 2);
     context.stroke();
     context.fillStyle = "#f4f7ff";
     context.textAlign = "center";
     context.font = "900 110px ui-monospace, SFMono-Regular, Menlo, monospace";
-    context.fillText(String(duoReport.score), 823, 328);
+    context.fillText(String(duoReport.score), 836, 328);
     context.fillStyle = palette.accent2;
     context.font = "700 26px ui-monospace, SFMono-Regular, Menlo, monospace";
-    context.fillText("% MATCH", 823, 370);
+    context.fillText("% MATCH", 836, 370);
     context.textAlign = "left";
 
-    posterPath(context, 58, 448, 964, 228, 12);
+    posterPath(context, 58, 448, 964, 280, 12);
     context.fillStyle = "rgba(7,15,27,.88)";
     context.fill();
     context.strokeStyle = "rgba(150,178,216,.25)";
@@ -1030,25 +1046,34 @@ export default function Home() {
       ["SIGNAL", String(duoReport.dominantScore), "主导声场"],
       ["EXACT", `${duoReport.exactMatches}/${duoReport.comparableAnswers}`, "完全同选"],
     ];
+    context.strokeStyle = "rgba(150,178,216,.18)";
+    context.beginPath();
+    context.moveTo(540, 448);
+    context.lineTo(540, 728);
+    context.moveTo(58, 588);
+    context.lineTo(1022, 588);
+    context.stroke();
+
     metrics.forEach(([code, value, label], index) => {
-      const x = 86 + index * 235;
+      const x = index % 2 === 0 ? 86 : 568;
+      const y = index < 2 ? 0 : 140;
       context.fillStyle = "#6f7d94";
       context.font = "650 14px ui-monospace, SFMono-Regular, Menlo, monospace";
-      context.fillText(code, x, 495);
+      context.fillText(code, x, 485 + y);
       context.fillStyle = index === 3 ? palette.accent2 : palette.accent;
       context.font = "850 54px ui-monospace, SFMono-Regular, Menlo, monospace";
-      context.fillText(value, x, 565);
+      context.fillText(value, x, 545 + y);
       context.fillStyle = "#aab5c7";
       context.font = "500 19px PingFang SC, Microsoft YaHei, sans-serif";
-      context.fillText(label, x, 617);
+      context.fillText(label, x, 574 + y);
     });
 
     context.fillStyle = "#6f7d94";
     context.font = "650 15px ui-monospace, SFMono-Regular, Menlo, monospace";
-    context.fillText("TOP SHARED SIGNALS", 60, 744);
+    context.fillText("TOP SHARED SIGNALS", 60, 782);
     duoReport.resonanceKeys.slice(0, 3).forEach((key, index) => {
       const dimension = dimensions.find((item) => item.key === key)!;
-      const y = 805 + index * 91;
+      const y = 836 + index * 88;
       context.fillStyle = index === 0 ? palette.accent : "rgba(12,23,39,.94)";
       posterPath(context, 60, y - 42, 620, 68, 8);
       context.fill();
@@ -1065,13 +1090,13 @@ export default function Home() {
     });
 
     const qrImage = await loadQrImage(inviteUrl, 244);
-    context.drawImage(qrImage, 758, 744, 244, 244);
+    context.drawImage(qrImage, 758, 790, 244, 244);
     context.fillStyle = "#f4f7ff";
     context.font = "700 20px PingFang SC, Microsoft YaHei, sans-serif";
-    context.fillText("扫码查看完整合拍报告", 760, 1027);
+    context.fillText("扫码查看完整合拍报告", 760, 1070);
     context.fillStyle = "#738198";
     context.font = "600 14px ui-monospace, SFMono-Regular, Menlo, monospace";
-    context.fillText(`ROOM ${roomCode}  ·  24H SIGNAL`, 760, 1062);
+    context.fillText(`ROOM ${roomCode}  ·  24H SIGNAL`, 760, 1102);
 
     context.strokeStyle = "rgba(150,178,216,.24)";
     context.beginPath();
@@ -1129,6 +1154,7 @@ export default function Home() {
     if (isWechatBrowser()) {
       const requestId = ++wechatShareRequest.current;
       const title = `同频播放｜${duoReport.score}% ${duoReport.tier.title}`;
+      bindWechatShareToRoom();
       setWechatAssist({ mode: "share", posterUrl, title, status: "loading" });
       const status = await configureWechatShare({
         title,
@@ -1887,39 +1913,36 @@ export default function Home() {
       )}
 
       {posterOpen && duoReport && (
-        <div className="poster-modal" role="dialog" aria-modal="true" aria-labelledby="poster-title" onClick={() => setPosterOpen(false)}>
-          <div className="poster-dialog" onClick={(event) => event.stopPropagation()}>
-            <div className="poster-dialog__head">
-              <div>
-                <p className="eyebrow">SHARE SIGNAL GENERATED</p>
-                <h2 id="poster-title">双人结果海报</h2>
+        <div className="invite-share-modal result-share-modal" role="dialog" aria-modal="true" aria-labelledby="poster-title" onClick={() => setPosterOpen(false)}>
+          <div className="invite-share-sheet result-share-sheet" onClick={(event) => event.stopPropagation()}>
+            <header className="invite-share-head">
+              <h2 id="poster-title"><i aria-hidden="true" />分享双人合拍报告</h2>
+              <button className="invite-share-close" onClick={() => setPosterOpen(false)} aria-label="关闭分享海报">×</button>
+            </header>
+            <div className="invite-share-body">
+              <div className="invite-share-preview result-share-preview">
+                {posterBusy && (
+                  <div className="poster-loading">
+                    <span />
+                    <strong>正在编码双人声场</strong>
+                    <small>GENERATING 1080 × 1440 POSTER</small>
+                  </div>
+                )}
+                {!posterBusy && posterUrl && <img src={posterUrl} alt={`${duoReport.score}% ${duoReport.tier.title}双人合拍结果海报`} />}
+                {!posterBusy && !posterUrl && <p className="room-error">{shareFeedback || "海报暂时无法生成"}</p>}
               </div>
-              <button className="poster-close" onClick={() => setPosterOpen(false)} aria-label="关闭分享海报">×</button>
-            </div>
-            <div className="poster-preview">
-              {posterBusy && (
-                <div className="poster-loading">
-                  <span />
-                  <strong>正在编码双人声场</strong>
-                  <small>GENERATING 1080 × 1440 POSTER</small>
-                </div>
-              )}
-              {!posterBusy && posterUrl && <img src={posterUrl} alt={`${duoReport.score}% ${duoReport.tier.title}双人合拍结果海报`} />}
-              {!posterBusy && !posterUrl && <p className="room-error">{shareFeedback || "海报暂时无法生成"}</p>}
-            </div>
-            <div className="poster-dialog__foot">
-              <p>
-                海报内含结果二维码。微信内可长按图片保存，或使用下方按钮直接分享。
-                {shareFeedback && <strong>{shareFeedback}</strong>}
+              <p className="invite-share-summary result-share-summary"><i aria-hidden="true" />{duoReport.score}% · {duoReport.tier.title} · {channel.short}频道</p>
+              <div className="invite-share-actions">
+                <button className="invite-share-button invite-share-button--primary" disabled={!posterUrl || posterBusy} onClick={sharePoster}>
+                  分享结果海报 <span>↗</span>
+                </button>
+                <button className="invite-share-button invite-share-button--secondary" disabled={!posterUrl || posterBusy} onClick={downloadPoster}>
+                  保存图片
+                </button>
+              </div>
+              <p className="invite-share-hint" role={shareFeedback ? "status" : undefined}>
+                {shareFeedback || "微信内可长按保存，或使用分享按钮发送"}
               </p>
-              <div className="actions">
-                <button className="button button--primary" disabled={!posterUrl || posterBusy} onClick={sharePoster}>
-                  分享海报 <span>↗</span>
-                </button>
-                <button className="button button--ghost" disabled={!posterUrl || posterBusy} onClick={downloadPoster}>
-                  保存图片 <span>↓</span>
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -1954,7 +1977,7 @@ export default function Home() {
                     ? "正在准备好友分享卡片…"
                     : wechatAssist.status === "ready"
                       ? "分享卡片已准备好"
-                      : "当前使用微信页面分享；发送海报图片请先长按保存"}
+                      : "当前房间链接已绑定；发送海报图片请先长按保存"}
                 </span>
               </>
             )}

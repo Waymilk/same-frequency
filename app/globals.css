@@ -3767,6 +3767,19 @@ button { color: inherit; font: inherit; }
   overflow-wrap: anywhere;
 }
 
+.result-share-summary {
+  min-height: 48px;
+  height: auto;
+  padding: 10px 0;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.result-share-preview {
+  border-color: rgba(var(--accent2-rgb), .72);
+}
+
 @media (max-width: 700px) and (orientation: portrait) {
   .invite-share-modal {
     display: block;
@@ -3794,6 +3807,45 @@ button { color: inherit; font: inherit; }
   .invite-share-sheet::after {
     bottom: calc(12px + env(safe-area-inset-bottom));
   }
+
+  .channels-page {
+    padding-bottom: calc(154px + env(safe-area-inset-bottom));
+  }
+
+  .channels-page .channel-confirm {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 70;
+    width: auto;
+    min-width: 0;
+    margin: 0;
+    padding: 10px 11px;
+    gap: 8px;
+    background: rgba(5, 11, 21, .96);
+    box-shadow: 0 -12px 36px rgba(0, 0, 0, .34), 0 0 20px rgba(var(--accent-rgb), .12);
+    backdrop-filter: blur(12px);
+  }
+
+  .channels-page .channel-confirm > div {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .channels-page .channel-confirm strong {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
+  }
+
+  .channels-page .channel-confirm .button {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 126px;
+    min-height: 46px;
+    padding: 0 13px;
+  }
 }
 
 @media (max-width: 350px) and (orientation: portrait) {
@@ -3802,6 +3854,7 @@ button { color: inherit; font: inherit; }
   .invite-share-body { padding: 14px 16px calc(72px + env(safe-area-inset-bottom)); }
   .invite-share-summary { height: 44px; font-size: 11px; }
   .invite-share-button { height: 52px; }
+  .channels-page .channel-confirm .button { min-width: 116px; padding-inline: 10px; }
 }
 
 .wechat-assist {
